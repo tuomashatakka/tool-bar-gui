@@ -1,0 +1,33 @@
+{
+  "name": "tool-bar-autonomy",
+  "main": "./lib/tool-bar-autonomy",
+  "version": "0.0.0",
+  "description": "A short description of your package",
+  "keywords": [
+  ],
+  "activationCommands": {
+    "atom-workspace": "tool-bar:toggle"
+  },
+  "repository": "https://github.com/atom/tool-bar-autonomy",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+  },
+  "configSchema": {
+    "buttons": {
+      "type": "object",
+      "title": "Tool Bar Buttons",
+      "description": "Buttons to populate the toolbar",
+      "default": {}
+    }
+  },
+  "consumedServices": {
+    "tool-bar": {
+      "versions": {
+        "^0 || ^1": "consumeToolBar"
+      }
+    }
+  }
+}
