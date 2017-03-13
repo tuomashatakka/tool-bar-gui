@@ -3,18 +3,77 @@
 // See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
 // for a full listing of what's available.
 @import "ui-variables";
+@transition-duration: .2s;
+
+atom-panel[class*='tool-bar-button-'] {
+  max-width: 35vw;
+  transition: max-width @transition-duration;
+
+  .instructions {
+    padding: @component-padding * 2;
+    font-style: italic;
+  }
+
+  .hidden {
+    min-width: 0 !important;
+    max-width: 0 }
+
+  label {
+    display: block }}
+
+.tool-bar-button-edit-view {
+
+  atom-text-editor {
+    display: block;
+    width: 100% }}
 
 .tool-bar-button-remove-view {
 
   .list-item {
-    transition: background-color .2s, color .2s;
+    transition: background-color @transition-duration, color @transition-duration;
     padding: @component-padding / 2 @component-padding;
-    cursor: pointer;
-  }
+    cursor: pointer }
 
   .list-item:hover {
     color: @text-color-highlight;
-    background-color: @background-color-highlight;
-  }
+    background-color: @background-color-highlight }}
 
-}
+
+.tool-bar {
+  .separator {
+    flex: 1 0 auto }
+
+  .tool-bar-btn.btn-config {
+    position: relative;
+    transition: transform @transition-duration;
+    -webkit-font-smoothing: antialiased;
+
+    --color: @text-color;
+    --weight: 1px;
+    --size: 16px;
+
+    &::before,
+    &::after {
+      transform: translate(-50%, -50%);
+      left: 50% ;
+      top: 50%;
+      position: absolute;
+      display: block;
+      content: "" !important;
+      transform-origin: 0% 0%;
+      background-color: var(--color);
+    }
+
+    &::before {
+      width: var(--size, 1px) !important;
+      height: var(--weight, 12px) !important }
+
+    &::after {
+      width: var(--weight, 12px) !important;
+      height: var(--size, 1px) !important }
+
+    &.remove-item::before,
+    &.remove-item::after {
+      transform: rotate(45deg) translate(-50%, -50%) }
+
+  }}
