@@ -1,13 +1,14 @@
 {
-  "name": "tool-bar-autonomy",
+  "name": "tool-bar-gui",
   "main": "./lib/tool-bar-autonomy",
   "version": "0.0.0",
-  "description": "A short description of your package",
+  "description": "Add & remove item panels for the tool-bar package",
   "keywords": [],
+  "author": "Tuomas Hatakka",
   "activationCommands": {
     "atom-workspace": "tool-bar:toggle"
   },
-  "repository": "https://github.com/atom/tool-bar-autonomy",
+  "repository": "https://github.com/tuomashatakka/tool-bar-gui",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
