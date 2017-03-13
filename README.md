@@ -1,5 +1,12 @@
-# tool-bar-autonomy package
+# Tool Bar GUI for Atom.io
 
-A short description of your package.
+A graphic user interface for managing [tool-bar] (http://atom.io/packages/tool-bar) items. 
 
-![A screenshot of your package](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
+Requires the [tool-bar] (http://atom.io/packages/tool-bar) package. 
+
+## Features
+
+Currently this package provdes panels for
+`adding`items to the tool bar and `removing` items from the tool bar. 
+
+Future updates will introduce tools for editing existing entries and ordering of items.
