@@ -5,9 +5,6 @@
   "description": "Add & remove item panels for the tool-bar package",
   "keywords": [],
   "author": "Tuomas Hatakka",
-  "activationCommands": {
-    "atom-workspace": "tool-bar:toggle"
-  },
   "repository": "https://github.com/tuomashatakka/tool-bar-gui",
   "license": "MIT",
   "engines": {
