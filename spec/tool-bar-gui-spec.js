@@ -1,44 +1,44 @@
 'use babel';
 
-import ToolBarAutonomy from '../lib/tool-bar-autonomy';
+import ToolBarGUI from '../lib/tool-bar-gui';
 
 // Use the command `window:run-package-specs` (cmd-alt-ctrl-p) to run specs.
 //
 // To run a specific `it` or `describe` block add an `f` to the front (e.g. `fit`
 // or `fdescribe`). Remove the `f` to unfocus the block.
 
-describe('ToolBarAutonomy', () => {
+describe('ToolBarGUI', () => {
   let workspaceElement, activationPromise;
 
   beforeEach(() => {
     workspaceElement = atom.views.getView(atom.workspace);
-    activationPromise = atom.packages.activatePackage('tool-bar-autonomy');
+    activationPromise = atom.packages.activatePackage('tool-bar-gui');
   });
 
-  describe('when the tool-bar-autonomy:toggle event is triggered', () => {
+  describe('when the tool-bar-gui:toggle event is triggered', () => {
     it('hides and shows the modal panel', () => {
       // Before the activation event the view is not on the DOM, and no panel
       // has been created
-      expect(workspaceElement.querySelector('.tool-bar-autonomy')).not.toExist();
+      expect(workspaceElement.querySelector('.tool-bar-gui')).not.toExist();
 
       // This is an activation event, triggering it will cause the package to be
       // activated.
-      atom.commands.dispatch(workspaceElement, 'tool-bar-autonomy:toggle');
+      atom.commands.dispatch(workspaceElement, 'tool-bar-gui:toggle');
 
       waitsForPromise(() => {
         return activationPromise;
       });
 
       runs(() => {
-        expect(workspaceElement.querySelector('.tool-bar-autonomy')).toExist();
+        expect(workspaceElement.querySelector('.tool-bar-gui')).toExist();
 
-        let toolBarAutonomyElement = workspaceElement.querySelector('.tool-bar-autonomy');
-        expect(toolBarAutonomyElement).toExist();
+        let toolBarGUIElement = workspaceElement.querySelector('.tool-bar-gui');
+        expect(toolBarGUIElement).toExist();
 
-        let toolBarAutonomyPanel = atom.workspace.panelForItem(toolBarAutonomyElement);
-        expect(toolBarAutonomyPanel.isVisible()).toBe(true);
-        atom.commands.dispatch(workspaceElement, 'tool-bar-autonomy:toggle');
-        expect(toolBarAutonomyPanel.isVisible()).toBe(false);
+        let toolBarGUIPanel = atom.workspace.panelForItem(toolBarGUIElement);
+        expect(toolBarGUIPanel.isVisible()).toBe(true);
+        atom.commands.dispatch(workspaceElement, 'tool-bar-gui:toggle');
+        expect(toolBarGUIPanel.isVisible()).toBe(false);
       });
     });
 
@@ -51,11 +51,11 @@ describe('ToolBarAutonomy', () => {
       // workspaceElement to the DOM are generally slower than those off DOM.
       jasmine.attachToDOM(workspaceElement);
 
-      expect(workspaceElement.querySelector('.tool-bar-autonomy')).not.toExist();
+      expect(workspaceElement.querySelector('.tool-bar-gui')).not.toExist();
 
       // This is an activation event, triggering it causes the package to be
       // activated.
-      atom.commands.dispatch(workspaceElement, 'tool-bar-autonomy:toggle');
+      atom.commands.dispatch(workspaceElement, 'tool-bar-gui:toggle');
 
       waitsForPromise(() => {
         return activationPromise;
@@ -63,10 +63,10 @@ describe('ToolBarAutonomy', () => {
 
       runs(() => {
         // Now we can test for view visibility
-        let toolBarAutonomyElement = workspaceElement.querySelector('.tool-bar-autonomy');
-        expect(toolBarAutonomyElement).toBeVisible();
-        atom.commands.dispatch(workspaceElement, 'tool-bar-autonomy:toggle');
-        expect(toolBarAutonomyElement).not.toBeVisible();
+        let toolBarGUIElement = workspaceElement.querySelector('.tool-bar-gui');
+        expect(toolBarGUIElement).toBeVisible();
+        atom.commands.dispatch(workspaceElement, 'tool-bar-gui:toggle');
+        expect(toolBarGUIElement).not.toBeVisible();
       });
     });
   });

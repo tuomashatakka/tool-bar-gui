@@ -7,25 +7,63 @@
 
 atom-panel[class*='tool-bar-button-'] {
   max-width: 35vw;
+  max-width: 320px;
+  width: 320px;
   transition: max-width @transition-duration;
 
-  .instructions {
-    padding: @component-padding * 2;
-    font-style: italic;
+  [data-reactroot] {
+    flex: 1 1;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center }
+
+  .panel-body {
+    display: flex;
+    flex-flow: column nowrap;
+    > * {
+      flex: 1 1 4em;
+      height: auto !important }
   }
+
+  select, atom-text-editor, .btn-toolbar {
+    display: block;
+    width: auto }
+  select {
+    background: @input-background-color;
+    color: @text-color;
+    width: 100%;
+    box-sizing: border-box }
+
+  .instructions {
+    display: block !important;
+    transition: .6s all;
+    padding: 0;
+    margin: @component-padding * 2;
+    font-style: italic;
+    max-width: 100%;
+    max-height: 12em;
+    box-sizing: border-box;
+    overflow: hidden;
+    opacity: 1 }
+
+  .instructions.hidden {
+    display: block !important;
+    max-height: 0;
+    opacity: 0 }
 
   .hidden {
     min-width: 0 !important;
-    max-width: 0 }
+    max-width: none }
 
   label {
     display: block }}
 
 .tool-bar-button-edit-view {
 
-  atom-text-editor {
-    display: block;
-    width: 100% }}
+    atom-text-editor {
+      display: block;
+      width: 100% }}
 
 .tool-bar-button-remove-view {
 
@@ -40,6 +78,7 @@ atom-panel[class*='tool-bar-button-'] {
 
 
 .tool-bar {
+
   .separator {
     flex: 1 0 auto }
 
@@ -61,7 +100,9 @@ atom-panel[class*='tool-bar-button-'] {
       display: block;
       content: "" !important;
       transform-origin: 0% 0%;
+      border-radius: 3px;
       background-color: var(--color);
+      -webkit-font-smoothing: subpixel-antialiased;
     }
 
     &::before {
