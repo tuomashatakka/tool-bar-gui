@@ -7,28 +7,32 @@
 
 atom-panel[class*='tool-bar-button-'] {
   max-width: 35vw;
-  max-width: 320px;
-  width: 320px;
+  max-width: 270px;
+  width:     30rem;
   transition: max-width @transition-duration;
 
   [data-reactroot] {
-    flex: 1 1;
-    height: auto;
-    display: flex;
-    flex-direction: column;
+    flex:       1 1;
+    height:     auto;
+    display:    flex;
+    flex-flow:  column nowrap;
     justify-content: center }
 
-  .panel-body {
-    display: flex;
-    flex-flow: column nowrap;
-    > * {
-      flex: 1 1 4em;
-      height: auto !important }
-  }
+  &.tool-bar-button-edit-view [data-reactroot] {
+    justify-content: flex-start }
 
-  select, atom-text-editor, .btn-toolbar {
+  .panel-body {
+
+    > * {
+      flex: 1 1;
+      overflow: auto }}
+
+  select,
+  atom-text-editor,
+  .btn-toolbar {
     display: block;
     width: auto }
+
   select {
     background: @input-background-color;
     color: @text-color;
@@ -37,11 +41,12 @@ atom-panel[class*='tool-bar-button-'] {
 
   .instructions {
     display: block !important;
-    transition: .6s all;
+    transition: @transition-duration * 3 max-height, @transition-duration * 3 opacity;
     padding: 0;
     margin: @component-padding * 2;
     font-style: italic;
-    max-width: 100%;
+    width: 100%;
+    max-width: none;
     max-height: 12em;
     box-sizing: border-box;
     overflow: hidden;
@@ -118,3 +123,12 @@ atom-panel[class*='tool-bar-button-'] {
       transform: rotate(45deg) translate(-50%, -50%) }
 
   }}
+
+.commands-list {
+  max-height: 100%;
+  display: block;
+  position: relative;
+  overflow: auto }
+
+.command-editor {
+  flex: 1 0 50vh }
