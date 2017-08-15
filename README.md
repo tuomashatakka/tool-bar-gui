@@ -1,8 +1,8 @@
 # Tool Bar GUI for Atom.io
 
-A graphic user interface for managing [tool-bar] (http://atom.io/packages/tool-bar) items. 
+A graphic user interface for managing [tool-bar](http://atom.io/packages/tool-bar) items. 
 
-Requires the [tool-bar] (http://atom.io/packages/tool-bar) package. 
+Requires the [tool-bar](http://atom.io/packages/tool-bar) package. 
 
 ## Features
 
