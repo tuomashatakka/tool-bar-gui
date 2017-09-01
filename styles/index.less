@@ -1,0 +1,161 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+@transition-duration: .2s;
+
+toolbar-edit-view .panel-body label:last-of-type {
+  flex:     8 0 24em;
+}
+toolbar-edit-view,
+toolbar-manage-view {
+
+  [data-reactroot] {
+    top:       0;
+    left:      0;
+    right:     0;
+    bottom:    0;
+    display:   flex;
+    position:  absolute;
+    flex-flow: column nowrap }
+
+  .panel-body {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    padding:   @component-padding @component-padding / 2 }
+
+  .panel-body > * {
+      flex:     1 1 20em;
+      width:    auto;
+      margin:   0;
+      padding:  @component-padding @component-padding / 2;
+      overflow: auto }
+
+  select,
+  atom-text-editor,
+  .btn-toolbar {
+    display: block;
+    width: auto }
+
+  select {
+    background: @input-background-color;
+    color: @text-color;
+    width: 100%;
+    box-sizing: border-box }
+
+  .instructions {
+    display: block !important;
+    transition: @transition-duration * 3 max-height, @transition-duration * 3 opacity;
+    padding: 0;
+    margin: @component-padding * 2;
+    font-style: italic;
+    width: 100%;
+    max-width: none;
+    max-height: 12em;
+    box-sizing: border-box;
+    overflow: hidden;
+    opacity: 1 }
+
+  .instructions.hidden {
+    display: block !important;
+    max-height: 0;
+    opacity: 0 }
+
+  .hidden {
+    min-width: 0 !important;
+    max-width: none }
+
+  label {
+    display: block }}
+
+toolbar-edit-view {
+
+    atom-text-editor {
+      display: block;
+      width: 100% }}
+
+toolbar-manage-view {
+
+  .list-item {
+    transition: background-color @transition-duration, color @transition-duration;
+    padding: @component-padding / 2 @component-padding;
+    cursor: pointer }
+
+  .list-item:hover {
+    color: @text-color-highlight;
+    background-color: @background-color-highlight }}
+
+
+.tool-bar {
+
+  .separator {
+    flex: 1 0 auto }
+
+  .tool-bar-btn.btn-config {
+    position: relative;
+    transition: transform @transition-duration, color @transition-duration, background-color @transition-duration, border-color @transition-duration;
+    -webkit-font-smoothing: antialiased;
+
+    --color: @text-color;
+    --weight: 1px;
+    --size: 16px;
+
+    &::before,
+    &::after {
+      transform: translate(-50%, -50%);
+      left: 50% ;
+      top: 50%;
+      position: absolute;
+      display: block;
+      content: "" !important;
+      transform-origin: 0% 0%;
+      border-radius: 3px;
+      background-color: var(--color);
+      -webkit-font-smoothing: subpixel-antialiased;
+    }
+
+    &:hover {
+      --color: @text-color-highlight;
+    }
+
+    &::before {
+      width: var(--size, 1px) !important;
+      height: var(--weight, 12px) !important }
+
+    &::after {
+      width: var(--weight, 12px) !important;
+      height: var(--size, 1px) !important }
+
+    &.remove {
+      &::before,
+      &::after {
+        transform: rotate(45deg) translate(-50%, -50%) }
+    }
+
+    &.manage {
+      &::before {
+        margin-top: ~"calc(var(--size) / -4 - 2px)";
+      }
+      &::after {
+        --weight: 16px;
+        --size:   6px;
+        border: 1px solid var(--color);
+        background-color: transparent;
+        margin-top: ~"calc(var(--weight) / 4 - 2px)";
+        border-width: 1px 0;
+        border-radius: 0;
+      }
+    }
+  }
+}
+
+.commands-list {
+  max-height: 100%;
+  display: block;
+  position: relative;
+  overflow: auto }
+
+.command-editor {
+  flex: 1 0 50vh }
