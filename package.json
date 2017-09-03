@@ -2,8 +2,13 @@
   "author": {
     "name": "Tuomas Hatakka"
   },
-  "bugs": {
-    "url": "https://github.com/tuomashatakka/tool-bar-gui/issues"
+  "name": "tool-bar-gui",
+  "main": "./src/index",
+  "version": "0.1.2",
+  "keywords": [ "toolbar", "utility", "buttons", "gui", "ide", "user-interface", "add-on", "plugin" ],
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
   },
   "configSchema": {
     "buttons": {
@@ -25,24 +30,18 @@
     "react": "^15.5.4",
     "react-dom": "^15.5.4"
   },
-  "description": "Provides a graphical user interface to add, modify & remove items in the tool-bar. Requires the tool-bar package.",
   "devDependencies": {
     "flow-bin": "^0.54.0"
   },
-  "engines": {
-    "atom": ">=1.0.0 <2.0.0"
-  },
-  "homepage": "https://github.com/tuomashatakka/tool-bar-gui#readme",
-  "keywords": [],
-  "license": "MIT",
-  "main": "./lib/index",
-  "name": "tool-bar-gui",
   "optionalDependencies": {},
+
+  "description": "Provides a graphical user interface to add, modify & remove items in the tool-bar. Requires the tool-bar package.",
+  "homepage": "https://github.com/tuomashatakka/tool-bar-gui#readme",
   "readme": "# Tool Bar GUI for Atom.io\n\nA graphic user interface for managing [tool-bar] (http://atom.io/packages/tool-bar) items. \n\nRequires the [tool-bar] (http://atom.io/packages/tool-bar) package. \n\n## Features\n\nCurrently this package provdes panels for\n`adding`items to the tool bar and `removing` items from the tool bar. \n\nFuture updates will introduce tools for editing existing entries and ordering of items.\n",
   "readmeFilename": "README.md",
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tuomashatakka/tool-bar-gui.git"
-  },
-  "version": "0.1.2"
+  }
 }
