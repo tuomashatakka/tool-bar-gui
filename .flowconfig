@@ -3,6 +3,7 @@
 [include]
 
 [libs]
+conf/**.types?.js
 
 [lints]
 
