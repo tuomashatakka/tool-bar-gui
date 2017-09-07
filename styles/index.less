@@ -1,13 +1,11 @@
-// The ui-variables file is provided by base themes provided by Atom.
-//
-// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
-// for a full listing of what's available.
+
 @import "ui-variables";
+
 @transition-duration: .2s;
 
 toolbar-edit-view .panel-body label:last-of-type {
-  flex:     8 0 24em;
-}
+  flex:     8 0 24em }
+
 toolbar-edit-view,
 toolbar-manage-view {
 
@@ -32,6 +30,29 @@ toolbar-manage-view {
       margin:   0;
       padding:  @component-padding @component-padding / 2;
       overflow: auto }
+
+
+atom-panel[class*='tool-bar-button-'] {
+  max-width: 35vw;
+  max-width: 270px;
+  width:     30rem;
+  transition: max-width @transition-duration;
+
+  [data-reactroot] {
+    flex:       1 1;
+    height:     auto;
+    display:    flex;
+    flex-flow:  column nowrap;
+    justify-content: center }
+
+  &.tool-bar-button-edit-view [data-reactroot] {
+    justify-content: flex-start }
+
+  .panel-body {
+
+    > * {
+      flex: 1 1;
+      overflow: auto }}
 
   select,
   atom-text-editor,

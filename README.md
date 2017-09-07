@@ -38,3 +38,11 @@ One may choose to populate the callback command editor with either of the follow
   // the context of the editor:
   atom.workspace.getActiveTextEditor(niccce)
   ```
+
+
+## Features
+
+Currently this package provdes panels for
+`adding`items to the tool bar and `removing` items from the tool bar. 
+
+Future updates will introduce tools for editing existing entries and ordering of items.
