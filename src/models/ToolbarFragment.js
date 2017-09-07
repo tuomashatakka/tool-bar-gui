@@ -45,6 +45,11 @@ class EntrySet {
     return entries
   }
 
+  getOne = (item) => {
+    let i = [ ...this.get(item) ]
+    return i.length ? i[0] : null
+  }
+
   get = (...items) => {
     let key      = 'tooltip'
     let keys     = items.map(item => item.properties.get(key))
@@ -106,7 +111,9 @@ class EntrySet {
     || this
 
   save      = (path) => {
-    atom.config.set(descriptor(...path), this.toJSON(false)) }
+    console.log(path) // FIXME: Remove
+
+    atom.config.set(descriptor(path), this.toJSON(false)) }
 
   toJSON    = (json=true) =>
     Array.from(this.set).sort(orderByPosition).map(serializeItem(json))
@@ -132,6 +139,7 @@ export default class ToolbarFragment extends Emitter {
     Object.defineProperty(this, 'toolbar', { get: () => toolbar })
 
     this.onDidAddItem(button => toolbar.addButton(button))
+    this.onDidAddItem(button => console.log("button added:", button))
     this.onDidRemoveItem(() => this.redrawItems())
     this.onDidReorderItems(() => this.redrawItems())
     this.redrawItems()
@@ -163,7 +171,7 @@ export default class ToolbarFragment extends Emitter {
     let items = this.items
     items.add(item)
     this.items.save(this.getConfigKey('items'))
-    this.emit('did-add-item', this.items)
+    this.emit('did-add-item', this.items.getOne(item))
   }
 
   @self

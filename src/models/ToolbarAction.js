@@ -3,6 +3,7 @@ import { Emitter } from 'atom'
 import { composeCallback } from '../dispatch'
 import ToolbarItem from './ToolbarItem'
 
+
 export default class ToolbarAction extends Emitter {
 
   static deserialize (detail={}) {
