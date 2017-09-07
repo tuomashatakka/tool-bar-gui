@@ -1,12 +1,12 @@
 'use babel'
-import { File } from 'atom'
+import { Directory } from 'atom'
+import { extname } from 'path'
 
-const getScriptFile   = () => new File(atom.getStorageFolder().pathForKey(scriptFileName))
 const getDispatchName = name => 'dispatch_' + name.replace(/([^\w]+)/g, '_').replace('-', '_')
-
 const registeredCommandRegex = /\s*(('|")?([\w-:]+)('|")?)\s*/
 const babelDefRegex   = /('|")use babel('|");?/g
-const scriptFileName  = 'toolBarScripts.js'
+// const scriptFileName  = 'toolBarScripts.js'
+const scriptDirName   = 'tool-bar-scripts'
 const indent          = '  '
 const scriptTemplate  = (name, src) => `
 export function ${getDispatchName(name)} (cmd, ...args) {
@@ -14,35 +14,57 @@ ${indent}${src.replace(/\n+/g, c => c + indent)}
 }
 `
 
-function addScript (name, src) {
-  return !hasScriptInFile(name) ?
-    setScriptFileContents(scriptTemplate(name, src)) :
-    null
+const getDirectory = () => new Directory(atom.getStorageFolder().pathForKey(scriptDirName))
+
+async function getScriptFile (name=null) {
+
+  if (!name)
+    name = 'index.js'
+  if (!extname(name))
+    name = name + '.js'
+
+  let folder = getDirectory()
+  let file   = folder.getFile(name)
+
+  await file.create()
+  return file
 }
 
-const setScriptFileContents = (content='', append=true) => {
+function addScript (name, src) {
+  setScriptFileContents(name, scriptTemplate(name, src))
+}
+// function addScript (name, src) {
+//   return !hasScriptInFile(name) ?
+//     setScriptFileContents(scriptTemplate(name, src)) :
+//     null
+// }
 
-  let file  = getScriptFile()
-  let fileContent = append ? file.readSync() || '' : ''
+// const hasScriptInFile = (name) =>
+//   (getScriptFile().readSync() || '')
+//     .search(`export function ${getDispatchName(name)}`) > -1
+
+async function setScriptFileContents (name, content='', append=false) {
+
+  let file = await getScriptFile(name)
+  let fileContent
+  if (append)
+    fileContent = file.readSync()
   fileContent = fileContent.replace(babelDefRegex, '')
-
-  if (!file.existsSync())
-    file.create()
-
   file.writeSync("'use babel';" + fileContent + content)
 }
 
-const hasScriptInFile = (name) =>
-  (getScriptFile().readSync() || '')
-    .search(`export function ${getDispatchName(name)}`) > -1
+function clearScriptsFolder () {
+  let folder = getDirectory()
+  console.log(folder)
+}
 
 export const setupScripts = (commands={}) => {
   if (commands === 'clear')
-    return setScriptFileContents('', false)
+    return clearScriptsFolder()
   return Object
-  .keys(commands)
-  .reduce((acc, name) => ({ ...acc,
-  [name]: composeCallback(commands[name], name) }), {})
+    .keys(commands)
+    .reduce((acc, name) => ({ ...acc,
+    [name]: composeCallback(commands[name], name) }), {})
 }
 
 export function composeCallback (cmd, btn) {
@@ -64,15 +86,17 @@ export function composeCallback (cmd, btn) {
   if (!isCommand)
     addScript(name, command)
 
-  return () => {
+  return async function () {
     // Primarily resolve as an internal command
     if (isCommand)
       return atom.commands.dispatch( workspace, command )
 
     // Evaluate the script as-is as a last resort
     let dispatchName = getDispatchName(name)
-    let scriptPath   = getScriptFile().path
+    let scriptPath   = await getScriptFile().path
     let dispatch     = require(scriptPath)[dispatchName]
-    return dispatch ? dispatch.call(atom, command) : null
+    if (dispatch)
+      return dispatch.call(atom, command)
+    return null
   }
 }
