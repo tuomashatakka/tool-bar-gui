@@ -1,8 +1,11 @@
 'use babel'
 
+import { clearScripts } from './filesystem'
 import { CompositeDisposable } from 'atom'
+import { activateOrOpenInNewPane } from './util'
 import initializeComponentElement from './util/ComponentElement'
 import EditView from './views/EditView'
+import ManageView from './views/ManageView'
 import RemoveView from './views/RemoveView'
 import ToolbarAction from './models/ToolbarAction'
 import ToolbarFragment from './models/ToolbarFragment'
@@ -11,18 +14,23 @@ let subscriptions
 
 const toolbarDefaultName  = 'undefined' // 'general'
 const createEditView = initializeComponentElement('toolbar-edit-view', EditView)
-const createManageView = initializeComponentElement('toolbar-manage-view', RemoveView)
+const createManageView = initializeComponentElement('toolbar-manage-view', ManageView)
+const createRemoveView = initializeComponentElement('toolbar-remove-view', RemoveView)
 
 
 export function activate () {
 
   subscriptions = new CompositeDisposable()
+  const commandsDisposable = atom.commands.add('atom-workspace', {
+    'tool-bar-gui:purge-script-files': () => clearScripts()
+  })
   const editViewDisposable = atom.views.addViewProvider(ToolbarAction, action => createEditView({ action }))
   const manageViewDisposable = atom.views.addViewProvider(ToolbarFragment, fragment => createManageView({ fragment }))
 
   subscriptions.add(
+    commandsDisposable,
     editViewDisposable,
-    manageViewDisposable
+    manageViewDisposable,
   )
 }
 
@@ -34,10 +42,11 @@ export function deactivate () {
 
 export function consumeToolBar(getToolbar) {
 
+  let managementToolbar = getToolbar('management')
+
   let meta              = { name: toolbarDefaultName }
   let toolbar           = getToolbar(toolbarDefaultName)
   let fragment          = new ToolbarFragment(toolbar, meta)
-  let managementToolbar = getToolbar('management')
   // let managementFragment = new ToolbarFragment(managementToolbar)
 
   addManagementButtons(managementToolbar, fragment)
@@ -74,7 +83,10 @@ function addManagementButtons (managementToolbar, fragment) {
     priority:   84,
     icon:       'x',
     tooltip:    'Remove items from toolbar',
-    callback:   () => atom.workspace.open(fragment)
+    callback:   () => atom.workspace.open({
+      item: document.createElement('toolbar-remove-view'),
+      getTitle () { return 'Remove tool-bar items' }
+    })
   })
   removeBtn.element.classList.add('btn-config', 'remove')
 
@@ -83,10 +95,7 @@ function addManagementButtons (managementToolbar, fragment) {
     priority:   85,
     icon:       'grabber',
     tooltip:    'Edit toolbar items',
-    callback:   () => {
-      let p = atom.workspace.getCenter().getPanes()
-      p[p.length - 1].splitRight({items: [fragment]})
-    }
+    callback:   () => activateOrOpenInNewPane(fragment)
   })
   editBtn.element.classList.add('btn-config', 'manage')
 

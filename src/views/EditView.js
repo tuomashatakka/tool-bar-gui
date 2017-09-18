@@ -5,6 +5,8 @@ import React from 'react'
 import BaseView from './BaseView'
 import List from '../components/List'
 import { serializeFormData } from '../forms'
+import Editor from '../components/TextEditor'
+import { toggleView } from '../util'
 
 const MAX_ENTRIES_VISIBLE = 8
 
@@ -26,6 +28,16 @@ export default class ToolBarEditPanelView extends BaseView {
 
   state = {
     text: ''
+  }
+
+  initialize () {
+    let { iconset, icon, command } = this.props.action || {}
+    this.state = {
+      iconset,
+      command,
+      icon,
+      text: '',
+    }
   }
 
   getSubmitData () {
@@ -50,10 +62,11 @@ export default class ToolBarEditPanelView extends BaseView {
     if (this.__editor)
       return this.__editor
 
-    let gram = atom.grammars.getGrammars().find(o => o.scopeName.search('.js') > 0)
-    let editor = atom.textEditors.build({
-      grammar: gram
-    })
+    let grammar = atom.grammars.getGrammars().find(o => o.scopeName.search('.js') > 0)
+    let editor  = atom.textEditors.build({ grammar })
+    let command = this.props.action.properties.get('command')
+    if (command)
+      editor.setText(command)
     // editor.element.addEventListener('focus', console.log)
     editor.element.setAttribute('name', 'command')
     editor.onDidStopChanging(() => this.updateState({ text: this.__editor.getText() }))
@@ -87,20 +100,28 @@ export default class ToolBarEditPanelView extends BaseView {
 
       <label className='form-group'>
         <div className="h5">Tooltip</div>
-        <atom-text-editor mini name='tooltip' />
+        <atom-text-editor mini name='tooltip'>{this.props.action.tooltip || ''}</atom-text-editor>
         {showErrors('tooltip')}
       </label>
 
       <label className='form-group'>
         <div className="h5">Icon</div>
-        <atom-text-editor mini name='icon' />
+        <Editor
+          name='icon'
+          onChange={(e) => console.warn("icon field changed", e)}
+          initialValue={this.props.action.icon}
+        />
         {showErrors('icon')}
       </label>
 
       <label className='form-group'>
         <div className="h5">Iconset</div>
-        <select className="input-select" name='iconset'>
-          <option value=''>Glyphicons</option>
+        <select
+          name='iconset'
+          className="input-select"
+          onChange={({ value: iconset }) => this.setState({ iconset })}
+          value={this.state.iconset}>
+          <option value='icon'>Octicons</option>
           <option value='tri'>Trinity</option>
           <option value='fa'>Font Awesome</option>
           <option value='ion'>Ionicons</option>
@@ -124,6 +145,8 @@ export default class ToolBarEditPanelView extends BaseView {
 
   get footer () {
 
+    let host
+
     const bindInfo = (target) => {
       const focus = () => target.classList.remove('hidden')
       const blur  = () => target.classList.add('hidden')
@@ -135,7 +158,7 @@ export default class ToolBarEditPanelView extends BaseView {
       this.editor.element.addEventListener('blur', blur)
     }
 
-    return <footer className='panel-footer padded'>
+    return <footer className='panel-footer padded' ref={ref => ref && (host = ref.parentElement)}>
 
       <section className='instructions text-subtle hidden' ref={bindInfo}>
 
@@ -162,9 +185,8 @@ export default class ToolBarEditPanelView extends BaseView {
           </button>
 
           <button
-            onClick={this.cancel.bind(this)}
             className='btn btn-error'
-            type='cancel'>
+            onClick={() => toggleView(host)}>
             Cancel
           </button>
 

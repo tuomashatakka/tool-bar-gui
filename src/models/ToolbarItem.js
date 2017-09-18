@@ -3,28 +3,42 @@ import { composeCallback } from '../dispatch'
 import self from 'autobind-decorator'
 
 
-export default class ToolbarItem {
+const callbacks = new WeakMap()
+const actionsByItem = new WeakMap()
 
+
+export function getActionByItem (item) {
+  return actionsByItem.get(item)
+}
+
+
+export async function getCallbackForItem (item) {
+  let callback = callbacks.get(item)
+  if (!callback) {
+    callback = await composeCallback(item)
+    callbacks.set(item. callback)
+  }
+  return callback
+}
+
+
+export default class ToolbarItem {
 
   constructor (action) {
     let properties = {}
     for (let [ key, value ] of action.properties.entries())
       properties[key] = { value }
+
     Object.defineProperties(this, properties)
-    this._callback = composeCallback(this.command, this)
-    console.log("toolbar item:", this, this._callback)
+    actionsByItem.set(this, action)
+    callbacks.set(this, )
   }
 
-
   @self
-  callback () {
-
-    try {
-      return this._callback() }
-
-    catch (description) {
-      atom.notifications.addWarning("Could not execute the callback", { description }) }
-
+  async callback () {
+    let callback = await getCallbackForItem(this)
+    if (typeof callback === 'function')
+      return callback()
   }
 
 

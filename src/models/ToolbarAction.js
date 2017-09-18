@@ -1,12 +1,16 @@
 'use babel'
 import { Emitter } from 'atom'
-import { composeCallback } from '../dispatch'
 import ToolbarItem from './ToolbarItem'
+import self from 'autobind-decorator'
+import { getFile } from '../filesystem'
+import { activateOrOpenInNewPane } from '../util'
 
 
 export default class ToolbarAction extends Emitter {
 
   static deserialize (detail={}) {
+    if (detail instanceof ToolbarAction)
+      return detail
     let action   = new ToolbarAction()
     Object.defineProperties(action, parseRawData(detail))
     return action
@@ -17,15 +21,59 @@ export default class ToolbarAction extends Emitter {
     this.properties = new Map()
   }
 
+  @self
+  async openScriptFile () {
+    let file = await this.file
+    return atom.workspace.open(file.getPath())
+  }
+
+  get file () {
+    return getFile(this.filename)
+  }
+
+  get filename () {
+    this._filename = (this._filename || this.name).replace(/([^\w]+)/g, '-')
+    return this._filename
+  }
+
+  get name () {
+    let name = this.properties.get('tooltip')
+    if (!name) {
+      name = this.properties.get('command')
+      name = name ? name.substr(0, 12) : null
+    }
+    return name ? name.replace(/([^\w]+)/g, '-') : null
+  }
+
+  get tooltip () {
+    return this.properties.get('tooltip')
+  }
+
+  get iconset () {
+    return this.properties.get('iconset')
+  }
+
+  get icon () {
+    return this.properties.get('icon')
+  }
+
   getTitle () {
-    return 'Edit toolbar button'
+    let name = this.name
+    if (!name)
+      return 'Add toolbar item'
+    return 'Edit toolbar item ' + name
   }
 
   serialize () {
     let data = { deserializer: 'ToolbarAction' }
     for (let [key, val] of this.properties.entries())
-      data[key] = val
+      if (key !== 'position')
+        data[key] = val
     return data
+  }
+
+  toString () {
+    return this.name
   }
 
   toJSON = () => ({
@@ -36,12 +84,13 @@ export default class ToolbarAction extends Emitter {
   })
 
   toButton () {
-    return new ToolbarItem(this)
+    let item = new ToolbarItem(this)
+    return item
   }
 
   static async initialize () {
     let action   = new ToolbarAction()
-    let item     = await atom.workspace.open(action)
+    let item     = await activateOrOpenInNewPane(action)
     // let pane     = atom.workspace.paneForItem(item)
     let view     = atom.views.getView(action)
     let response = new Promise(resolve => {
@@ -67,12 +116,8 @@ export default class ToolbarAction extends Emitter {
 }
 
 function parseRawData (detail) {
-  let { command } = detail
   let properties  = new Map()
   for (let attr in detail)
     properties.set(attr, detail[attr])
-  return {
-    properties: { value: properties },
-    callback: { value: composeCallback(command, detail) }
-  }
+  return { properties: { value: properties } }
 }

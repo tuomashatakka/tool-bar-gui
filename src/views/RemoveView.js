@@ -5,28 +5,40 @@ import React from 'react'
 import BaseView from './BaseView'
 import List from '../components/DraggableList'
 
+let addedSubscription
+
 export default class RemoveView extends BaseView {
 
   title = 'Remove items'
   subtitle = 'Remove items from the tool bar.'
   className = 'tool-bar-button-remove-view'
 
-  constructor (props) {
-    super(props)
+  get items () {
+    if (!addedSubscription)
+      addedSubscription = this.props.fragment.onDidAddItem(() => this.forceUpdate())
+    return this.props.fragment.items.toArray()
   }
 
-  get listItems () {
-    let action     = item => this.props.fragment.removeItem(item)
-    let withAction = item => ({...item, action})
-    return this.props.fragment
-      .items
-      .toJSON()
-      .map(withAction)
+  removeItem (item) {
+    this.props.fragment.removeItem(item)
+    this.forceUpdate()
   }
 
   @self
-  updateItemPosition (from, to) {
-    this.props.fragment.moveItem(from, to)
+  updateItemPosition (item, to) {
+    this.props.fragment.moveItem(item, to)
+  }
+
+  @self
+  promptRemoveItem (item) {
+    atom.confirm({
+      message: 'Remove an item from the toolbar?',
+      detailedMessage: 'Are you sure you want to delete the item ' + item.toString() + ' from your tool-bar?',
+      buttons: {
+        Yes: () => this.removeItem(item),
+        No: () => {}
+      }
+    })
   }
 
   render () {
@@ -38,8 +50,9 @@ export default class RemoveView extends BaseView {
         </section>
 
         <List
-          items={this.listItems}
-          updateItem={this.updateItemPosition}
+          items={this.items}
+          onClick={this.promptRemoveItem}
+          onMoveItem={this.updateItemPosition}
         />
 
       </div>

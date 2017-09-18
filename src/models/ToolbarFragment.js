@@ -2,10 +2,12 @@
 import self from 'autobind-decorator'
 import ToolbarAction from './ToolbarAction'
 import { Emitter } from 'atom'
+import { clearScripts } from '../filesystem'
 
 const packageName     = 'tool-bar-gui'
 
-const descriptor      = (...parts) => parts.filter(o => o).join('.')
+const descriptor      = (...parts) =>
+  parts.filter(o => o).join('.')
 
 const orderByPosition = (a, b) => {
   let pos_a = a.properties.get('position')
@@ -17,7 +19,8 @@ const orderByPosition = (a, b) => {
   )
 }
 
-const deserializeItem = entry => ToolbarAction.deserialize(entry)
+const deserializeItem = entry =>
+  ToolbarAction.deserialize(entry)
 
 const serializeItem   = json => json
   ? entry => entry.toJSON()
@@ -38,11 +41,7 @@ class EntrySet {
 
   constructor () {
     this.set = new Set()
-  }
-
-  get entries () {
-    let entries = [ ...this.set ].map(item => item.toButton())
-    return entries
+    clearScripts()
   }
 
   getOne = (item) => {
@@ -56,43 +55,36 @@ class EntrySet {
     let resolved = new Set()
     for (let item of this.set)
       if (keys.indexOf(item.properties.get(key)) > -1)
-        resolved.add(item)
+        if (items.length > 1)
+          resolved.add(item)
+        else
+          return item
     return resolved
   }
 
   findByProperty (property, value=null) {
     for (let item of this.set) {
+      if (!item) {
+        this.delete(item)
+        continue
+      }
       let propValue = item.properties.get(property)
       if ((!value && propValue) || (value && propValue === value))
         return item
     }
   }
 
-  moveUp (item) {
-    let from = item.properties.get('position')
-    let to   = from < 1 ? 0 : from - 1
-    let swap = this.findByProperty('position', to)
-    item.properties.set('position', to)
-    swap.properties.set('position', from)
-  }
-
-  moveDown (item) {
-    let from = item.properties.get('position')
-    let to   = from > this.set.size - 1 ? this.set.size : from + 1
-    let swap = this.findByProperty('position', to)
-    item.properties.set('position', to)
-    swap.properties.set('position', from)
-  }
-
-  switchPositions (item1, item2) {
-    let pos1 = item1.properties.get('position')
-    let pos2 = item2.properties.get('position')
-    item1.properties.set('position', pos2)
-    item2.properties.set('position', pos1)
+  reassignPositions () {
+    let n = 0
+    for (let item of this.set) {
+      console.log(n, item)
+      item.properties.set('position', n++)
+    }
   }
 
   add = (...items) =>
     items.forEach(item => {
+      item = deserializeItem(item)
       if (!item.properties.get('position'))
         item.properties.set('position', this.set.size)
       if (!this.has(item))
@@ -102,26 +94,41 @@ class EntrySet {
   has = (...items) =>
     items.reduce((res, item) => res && this.get(item).size > 0, false)
 
-  delete = (...items) =>
+  delete = (...items) => {
     items.forEach(item => this.set.delete(item))
-    || this
+    return this
+  }
 
   update = (...items) =>
     this.delete(...items) || this.add(...items)
     || this
 
-  save      = (path) => {
+  save (path) {
     console.log(path) // FIXME: Remove
+    atom.config.set(descriptor(path), this.toJSON(false))
+  }
 
-    atom.config.set(descriptor(path), this.toJSON(false)) }
+  toArray   = () => {
+    let sorted = Array.from(this.set).sort(orderByPosition)
+    return sorted
+  }
+
+  get entries () {
+    let entries = this.toArray().map(item => item.toButton())
+    return entries
+  }
 
   toJSON    = (json=true) =>
-    Array.from(this.set).sort(orderByPosition).map(serializeItem(json))
+    this.toArray().map(serializeItem(json))
 
   serialize = () => ({
     deserializer: 'EntrySet',
     entries: this.toJSON(),
   })
+
+  getPositions () {
+    return this.toArray().map(item => item.properties.get('position'))
+  }
 
 }
 
@@ -145,12 +152,18 @@ export default class ToolbarFragment extends Emitter {
     this.redrawItems()
   }
 
+  map (fn) {
+    return this.items.entries.map(fn)
+  }
+
   redrawItems () {
+    let addToolbarButton = this.toolbar.addButton.bind(this.toolbar)
     this.toolbar.removeItems()
-    this.items.entries.forEach(this.toolbar.addButton.bind(this.toolbar))
+    this.map(addToolbarButton)
   }
 
   getConfigKey = (key=null) => descriptor(packageName, this.meta.name, key)
+
   readFromConfig = (key) => atom.config.get(this.getConfigKey(key))
 
   get meta () {
@@ -158,47 +171,62 @@ export default class ToolbarFragment extends Emitter {
   }
 
   get items () {
-    if (!this.entrySet){
-      let items = this.readFromConfig('items')
-      this.entrySet = EntrySet.from(items)
-    }
+    if (!this.entrySet)
+      this.entrySet = EntrySet.from(this.readFromConfig('items'))
     return this.entrySet
+  }
+
+  @self
+  save () {
+    this.items.save(
+      this.getConfigKey('items'))
   }
 
   @self
   addItem (item) {
     assertAction(item)
-    let items = this.items
-    items.add(item)
-    this.items.save(this.getConfigKey('items'))
-    this.emit('did-add-item', this.items.getOne(item))
+    this.items.add(item)
+    this.emit('did-add-item', item)
+    this.save()
   }
 
   @self
   removeItem (item) {
+    assertAction(item)
     this.items.delete(item)
+    this.items.reassignPositions()
     this.emit('did-remove-item', this.items)
+    this.save()
   }
 
   @self
-  moveItem (from, to) {
-    to = (to >= from) ? to - 1 : to
-    let method = to > from ? 'moveDown' : 'moveUp'
-    let maxIterations = 1000
-    let item = this.items.findByProperty('position', from)
-    let pos  = () => item.properties.get('position')
+  moveItem (item, to) {
+    let from     = item.properties.get('position')
+    let entries  = this.items.toArray().slice(Math.min(from, to), Math.max(from, to))
+    let amount   = to - from
+    let moveItem = (item, d) =>
+      item.properties.set('position',
+      item.properties.get('position') + d)
+    let transpose = amount > 0 ?
+      item => moveItem(item, -1) :
+      item => moveItem(item, 1)
 
-    while (pos() !== to && maxIterations --> 0)
-      this.items[method](item)
+    // Translate items to new positions
+    entries.forEach(transpose)
+    moveItem(item, amount)
 
+    // Update the toolbar
+    this.redrawItems()
     this.emit('did-reorder-items', { item, from, to, items: this.items })
   }
 
   getTitle = () => 'Manage toolbar buttons'
 
-  onDidAddItem = (callback) => { this.on('did-add-item', callback) }
-  onDidRemoveItem = (callback) => { this.on('did-remove-item', callback) }
-  onDidReorderItems = (callback) => { this.on('did-reorder-items', callback) }
+  onDidAddItem = (callback) => this.on('did-add-item', callback)
+
+  onDidRemoveItem = (callback) => this.on('did-remove-item', callback)
+
+  onDidReorderItems = (callback) => this.on('did-reorder-items', callback)
 
   @self
   serialize () {

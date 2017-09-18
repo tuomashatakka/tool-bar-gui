@@ -2,9 +2,7 @@
 
 import React from 'react'
 import { render } from 'react-dom'
-
 export RemoveView from './RemoveView'
-
 export EditView from './EditView'
 
 export function createDockItem () {

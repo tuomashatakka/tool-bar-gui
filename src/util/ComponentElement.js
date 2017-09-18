@@ -67,7 +67,8 @@ class ComponentElement extends HTMLElement {
 
   connectedCallback () {
     this.initialize.call(this)
-    this.renderedComponent = this.mount()
+    if (!this.renderedComponent)
+      this.renderedComponent = this.mount()
     this.emitter.emit('did-attach')
   }
 

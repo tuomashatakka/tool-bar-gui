@@ -1,25 +1,17 @@
 'use babel'
 import { Directory } from 'atom'
 import { extname } from 'path'
+import { getActionByItem } from '../models/ToolbarItem'
+import { existsSync, unlinkSync } from 'fs'
 
 const registeredCommandRegex = /\s*(('|")?([\w-:]+)('|")?)\s*/
 
 function bootstrapScript (src) {
   return `'use babel'
-export default function toolBarButtonOnClickHandler () { (function (atom) {
-
-  try {
+export default function toolBarButtonOnClickHandler () {
+  (function (atom) {
   ${src};
-  }
-
-  catch (description) {
-    atom.notifications.addWarning(
-    'Failed to run the callback script',
-    { description })
-  }
-
-})(atom)}
-  `
+  })(atom)}`
 }
 
 const getDirectory = () =>
@@ -28,7 +20,7 @@ const getDirectory = () =>
   .pathForKey('custom-toolbar-scripts'))
 
 
-async function getFile (name) {
+export async function getFile (name) {
 
   let folder = getDirectory()
   await folder.create()
@@ -37,61 +29,86 @@ async function getFile (name) {
   else if (!extname(name)) name = name + '.js'
 
   let file = folder.getFile(name)
-  await file.create()
+  if (!file.existsSync())
+    await file.create()
   return file
+}
+
+export function clearScripts () {
+  let directory = getDirectory()
+  let entries = directory.getEntriesSync()
+  for (let entry of entries)
+    removeScript(entry)
+  try {
+    if (directory.getEntriesSync().length === 0)
+      unlinkSync(directory.getPath())
+  }
+  catch (e) { /**/ }
+}
+
+export function removeScript (entry) {
+  if (typeof entry !== 'string')
+    if (entry.existsSync && entry.existsSync())
+      unlinkSync(entry.getPath())
+  else
+    if (existsSync(entry))
+      unlinkSync(entry)
 }
 
 export async function writeToFile (name, src='') {
   let file = await getFile(name)
+  let path = file.getPath()
+  removeScript(path)
   await file.write(bootstrapScript(src))
-  return (...args) => require(file.getPath())(...args)
+  return (...args) => require(path)(...args)
 }
 
-export function clearScriptsFolder () {
-  let folder = getDirectory()
-  console.log(folder)
-}
+export async function composeCallback (item) {
 
-
-export function composeCallback (cmd, btn) {
-
-  let command = cmd ? cmd.trim() : null
-  let name = btn && btn.tooltip ? btn.tooltip :
-    typeof btn === 'string' ? btn :
-    Math.random().toString().substr(2)
+  let action = getActionByItem(item)
+  let command = item.command ? item.command.trim() : null
+  let name = action.filename
 
   if (!command)
-    return () => alert("No callback in", btn)
+    return () => alert("No callback in", item)
 
   let hasLinebreaks = command.search(/\n/) > -1
   let wellFormed    = command.match(registeredCommandRegex)
-  let workspace     = document.querySelector('atom-workspace')
   let formatPass    = wellFormed && wellFormed[0].length === command.trim().length
   let isCommand     = formatPass && !hasLinebreaks && atom.commands.registeredCommands[command]
 
-  let dispatch = writeToFile(name, command)
+  let dispatch = await writeToFile(name, command)
 
-  return async function () {
+  return function () {
     // Primarily resolve as an internal command
     let view = atom.views.getView(atom.workspace.getActivePaneItem())
     if (isCommand)
-      return dispatch( view, command )
+      return atom.commands.dispatch( view, command )
 
     // Evaluate the script as-is as a last resort
     if (dispatch)
       try {
-        console.warn(this, ...arguments, btn, command)
-        let method = await dispatch
-        console.warn(method, dispatch)
-        return method(atom, command, view)
+        let result = dispatch(atom, action, view)
+        console.warn("Resulted:", result)
+        return result
       }
-      catch (description) { error(description)  }
+      catch (message) {
+        error(item, message)
+      }
     return null
   }
 }
 
-function error (description) {
+function error (item, err) {
+  let action = getActionByItem(item)
+  let description = err.message
+
   atom.notifications.addWarning(
-    'Error while running ' + name + ' callback',
-    { description })
+    `Could not run the callback function for ${action.name}`,
+    { description,
+      buttons: [{
+        text: 'Edit function',
+        onDidClick: action.openScriptFile
+      }]
+    })
 }

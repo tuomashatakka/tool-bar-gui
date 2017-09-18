@@ -6,7 +6,7 @@ import { Emitter } from 'atom'
 export default class BasePanelView extends Component {
 
   static propTypes = {
-    host: prop.node.isRequired,
+    host: prop.element.isRequired,
   }
 
   className = 'tool-bar-button-edit-view'
@@ -17,10 +17,11 @@ export default class BasePanelView extends Component {
   onSubmit  = () => {}
   // onCancel  = () => {}
 
-  constructor(p) {
-    super(p)
-    this.emitter  = new Emitter()
+  constructor () {
+    super(...arguments)
+
     this.__render = this.render
+    this.emitter  = new Emitter()
     this.render   = () =>
       <form onSubmit={this.submit.bind(this)}>
         {this.header}
@@ -29,6 +30,11 @@ export default class BasePanelView extends Component {
       </form>
 
     this.emitter.on('form-error', (error) => this.updateState({ error }))
+    this.initialize()
+  }
+
+  initialize () {
+    
   }
 
   isValid () {
@@ -62,9 +68,9 @@ export default class BasePanelView extends Component {
 
   get header () {
     return <header className='panel-heading padded'>
-        <h3>{this.title}</h3>
-        <p>{this.subtitle}</p>
-      </header>
+      <h3>{this.title}</h3>
+      <p>{this.subtitle}</p>
+    </header>
   }
 
   get footer () {
@@ -77,22 +83,6 @@ export default class BasePanelView extends Component {
 
   get element () {
     return this.props.host
-  }
-
-  show () {
-    this.item.classList.remove('hidden')
-  }
-
-  hide () {
-    atom.workspace.hide(this.element)
-  }
-
-  toggle () {
-    return (this.isVisible()) ? this.hide() : this.show()
-  }
-
-  isVisible () {
-    return !this.item.classList.contains('hidden')
   }
 
   destroy () {
