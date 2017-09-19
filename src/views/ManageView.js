@@ -2,6 +2,7 @@
 
 import prop from 'prop-types'
 import React, { Component } from 'react'
+import self from 'autobind-decorator'
 import List from '../components/DraggableList'
 import ToolbarFragment from '../models/ToolbarFragment'
 import { toggleView } from '../util'
@@ -23,6 +24,34 @@ export default class ManageView extends Component {
     return this.props.fragment.items.toArray()
   }
 
+  @self
+  openItem (item) {
+    atom.workspace.open(item)
+  }
+
+  @self
+  updateItemPosition (item, to) {
+    this.props.fragment.moveItem(item, to)
+  }
+
+  @self
+  promptRemoveItem (item) {
+    atom.confirm({
+      message: 'Remove an item from the toolbar?',
+      detailedMessage: 'Are you sure you want to delete the item ' + item.toString() + ' from your tool-bar?',
+      buttons: {
+        Delete: () => this.removeItem(item),
+        Cancel: () => {}
+      }
+    })
+  }
+
+  removeItem (item) {
+    this.props.fragment.removeItem(item)
+    this.forceUpdate()
+    atom.notifications.addSuccess(item.toString() + ' removed from the tool-bar')
+  }
+
   render () {
     let host
     return (
@@ -40,8 +69,9 @@ export default class ManageView extends Component {
 
           <List
             items={this.items}
-            onClick={(item) => atom.workspace.open(item)}
-            onMoveItem={(item, to) => this.props.fragment.moveItem(item, to)}
+            onClick={this.openItem}
+            onMoveItem={this.updateItemPosition}
+            onRemoveItem={this.promptRemoveItem}
           />
 
         </div>

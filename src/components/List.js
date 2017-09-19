@@ -9,10 +9,10 @@ const ListComponent = ({ items }) =>
     {list(items)}
   </ul>
 
-export const list = items => items.map(item =>
+export const list = items => items.map((item, n) =>
   <ListItem
-    key={item.tooltip}
-    text={item.tooltip}
+    key={n}
+    text={item.name}
     action={item.action.bind(item)}
     iconset={item.iconset}
     icon={item.icon}

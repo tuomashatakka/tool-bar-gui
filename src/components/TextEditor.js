@@ -20,16 +20,15 @@ export default class TextEditor extends Component {
     name:         prop.string.isRequired,
     grammar:      prop.string,
     initialValue: prop.string,
+    onChange:     prop.func,
   }
 
   constructor (props) {
     super(props)
     this.grammar = getGrammar(this.props.grammar)
     this.emitter  = new Emitter()
-  }
 
-  set name (name) {
-    this.editor.element.setAttribute('name', name)
+    this.onChange(this.props.onChange)
   }
 
   get name () {
@@ -37,7 +36,11 @@ export default class TextEditor extends Component {
   }
 
   get value () {
-    this.editor.getText()
+    return this.editor.getText()
+  }
+
+  set name (name) {
+    this.editor.element.setAttribute('name', name)
   }
 
   set value (text) {
@@ -72,6 +75,7 @@ export default class TextEditor extends Component {
    */
 
   onChange (callback) {
-    this.emitter.on('change', callback)
+    if (callback)
+      this.emitter.on('change', callback)
   }
 }

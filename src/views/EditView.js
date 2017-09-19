@@ -1,12 +1,13 @@
 /** @babel */
 
-import React from 'react'
-// import prop from 'prop-types'
-import BaseView from './BaseView'
+import React, { Component } from 'react'
+import prop from 'prop-types'
 import List from '../components/List'
 import { serializeFormData } from '../forms'
 import Editor from '../components/TextEditor'
 import { toggleView } from '../util'
+import ToolbarAction from '../models/ToolbarAction'
+import { Emitter } from 'atom'
 
 const MAX_ENTRIES_VISIBLE = 8
 
@@ -18,33 +19,65 @@ const filterCommands = q => q ?
   commands.filter(cmd => new RegExp(q).test(cmd)) :
   commands
 
-export default class ToolBarEditPanelView extends BaseView {
+export default class ToolBarEditPanelView extends Component {
 
   title    = 'Add item'
   subtitle = 'Add a new item to the tool bar.'
 
   static propTypes = {
+    action: prop.instanceOf(ToolbarAction)
   }
 
   state = {
     text: ''
   }
 
-  initialize () {
-    let { iconset, icon, command } = this.props.action || {}
+  constructor (props) {
+    super(props)
+    this.emitter  = new Emitter()
+    this.emitter.on('form-error', (error) => this.updateState({ error }))
+    let { iconset, icon, command, tooltip } = this.props.action || {}
     this.state = {
+      icon,
       iconset,
       command,
-      icon,
-      text: '',
+      tooltip,
     }
   }
 
-  getSubmitData () {
-    return serializeFormData.call(
-      this.element.querySelector('form'),
-      true
-    )
+  submit = (e) => {
+    let data = this.form.data
+    let validation = this.isValid(data)
+    if (validation === true)
+      this.dispatch(e, 'submit', data)
+    else {
+      this.emitter.emit('form-error', validation)
+      e.stopImmediatePropagation()
+    }
+
+    e.preventDefault()
+    return false
+  }
+
+  cancel = (e) =>
+    this.dispatch(e, 'cancel')
+
+  dispatch (origin, name, detail) {
+    let event = new CustomEvent(name, { detail })
+    this.form.parentElement.dispatchEvent(event)
+
+    if (!origin.isDefaultPrevented())
+      origin.preventDefault()
+    return false
+  }
+
+  initializeForm (ref) {
+    if (!ref)
+       return
+    if (!this.form) {
+      this.form = ref
+      Object.defineProperty(this.form, 'data', { get: serializeFormData.bind(ref, true) })
+    }
   }
 
   isValid (data) {
@@ -69,7 +102,7 @@ export default class ToolBarEditPanelView extends BaseView {
       editor.setText(command)
     // editor.element.addEventListener('focus', console.log)
     editor.element.setAttribute('name', 'command')
-    editor.onDidStopChanging(() => this.updateState({ text: this.__editor.getText() }))
+    editor.onDidStopChanging(() => this.updateState({ command: this.__editor.getText() }))
     return (this.__editor = editor)
   }
 
@@ -78,29 +111,58 @@ export default class ToolBarEditPanelView extends BaseView {
   }
 
   get items () {
-    let { text } = this.state
-    let icon     = 'terminal'
-    let action   = ({ text }) => this.editor.setText(text)
+    let { command } = this.state
+    let text        = command || ''
+    let icon        = 'terminal'
+    let action      = ({ text }) => this.editor.setText(text)
 
     if (!text.match(/\n/g))
       return filterCommands(text)
-      .map(tooltip => ({ icon, tooltip, action, }))
+      .map(name => ({ icon, name, action, }))
       .slice(0, MAX_ENTRIES_VISIBLE)
     return []
   }
 
   render () {
 
+    let host
+
+    const bindInfo = (target) => {
+      const focus = () => target.classList.remove('hidden')
+      const blur  = () => target.classList.add('hidden')
+      if (!target)
+        return
+      this.editor.element.removeEventListener('focus', focus)
+      this.editor.element.removeEventListener('blur', blur)
+      this.editor.element.addEventListener('focus', focus)
+      this.editor.element.addEventListener('blur', blur)
+    }
+
     let { items } = this
     let { error } = this.state
-    const attachEditor = ref => ref ? ref.appendChild(this.editor.element) : null
-    const showErrors   = (field) => error && error.key === field ? error.exception.message : ''
 
-    return <div className='panel-body padded'>
+    const showErrors       = (field) => error && error.key === field ? error.exception.message : ''
+    const attachEditor     = (ref) => ref ? ref.appendChild(this.editor.element) : null
+    const onTooltipChanged = ({ text: tooltip }) => this.setState({ tooltip })
+    const onIconsetChanged = ({ value: iconset }) => this.setState({ iconset })
+    const onIconChanged    = ({ text: icon }) => this.setState({ icon })
+
+    return <form ref={this.initializeForm.bind(this)} onSubmit={this.submit.bind(this)}>
+
+      <header className='panel-heading padded'>
+        <h3>{this.title}</h3>
+        <p>{this.subtitle}</p>
+      </header>
+
+      <div className='panel-body padded'>
 
       <label className='form-group'>
         <div className="h5">Tooltip</div>
-        <atom-text-editor mini name='tooltip'>{this.props.action.tooltip || ''}</atom-text-editor>
+        <Editor
+          name='tooltip'
+          onChange={onTooltipChanged}
+          initialValue={this.props.action.tooltip}
+        />
         {showErrors('tooltip')}
       </label>
 
@@ -108,7 +170,7 @@ export default class ToolBarEditPanelView extends BaseView {
         <div className="h5">Icon</div>
         <Editor
           name='icon'
-          onChange={(e) => console.warn("icon field changed", e)}
+          onChange={onIconChanged}
           initialValue={this.props.action.icon}
         />
         {showErrors('icon')}
@@ -119,7 +181,7 @@ export default class ToolBarEditPanelView extends BaseView {
         <select
           name='iconset'
           className="input-select"
-          onChange={({ value: iconset }) => this.setState({ iconset })}
+          onChange={onIconsetChanged}
           value={this.state.iconset}>
           <option value='icon'>Octicons</option>
           <option value='tri'>Trinity</option>
@@ -141,24 +203,7 @@ export default class ToolBarEditPanelView extends BaseView {
 
     </div>
 
-  }
-
-  get footer () {
-
-    let host
-
-    const bindInfo = (target) => {
-      const focus = () => target.classList.remove('hidden')
-      const blur  = () => target.classList.add('hidden')
-      if (!target)
-        return
-      this.editor.element.removeEventListener('focus', focus)
-      this.editor.element.removeEventListener('blur', blur)
-      this.editor.element.addEventListener('focus', focus)
-      this.editor.element.addEventListener('blur', blur)
-    }
-
-    return <footer className='panel-footer padded' ref={ref => ref && (host = ref.parentElement)}>
+    <footer className='panel-footer padded' ref={ref => ref && (host = ref.parentElement)}>
 
       <section className='instructions text-subtle hidden' ref={bindInfo}>
 
@@ -194,5 +239,7 @@ export default class ToolBarEditPanelView extends BaseView {
       </section>
 
     </footer>
+  </form>
+
   }
 }

@@ -29,11 +29,39 @@ toolbar-manage-view {
     padding:   @component-padding @component-padding / 2 }
 
   .panel-body > * {
-      flex:     1 1 20em;
-      width:    auto;
-      margin:   0;
-      padding:  @component-padding @component-padding / 2;
-      overflow: auto }
+    flex:     1 1 20em;
+    width:    auto;
+    margin:   0;
+    padding:  @component-padding @component-padding / 2;
+    overflow: auto }
+
+  li.list-item {
+    justify-content: space-between;
+    align-items:     center;
+    display:         flex !important;
+
+    > * {
+      display: block;
+      width:   auto;
+      flex:    1 1;
+    }
+
+    .btn-group {
+      flex-grow: 0;
+    }
+
+    .btn-group .btn-error {
+      border: none !important;
+    }
+
+    span.icon {
+      vertical-align: middle !important;
+      flex-grow: 0;
+      padding:   0 1em;
+      margin:    0 0.3em 0 0;
+    }
+
+  }
 }
 
 

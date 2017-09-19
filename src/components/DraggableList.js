@@ -102,30 +102,32 @@ function onDragMove (event) {
 }
 
 
-const ListComponent = ({ items, onMoveItem, onClick }) => {
+const ListComponent = ({ items, onMoveItem, onClick, onRemoveItem }) => {
   handleMove = onMoveItem
   handleClick = onClick
 
   return <ul
     className='select-list list-group'>
-    {list(items, onDragStart)}
+    {list( items, onDragStart, onRemoveItem )}
   </ul>
 }
 
 
-export const list = (items, onMouseDown) => items.map(item =>
+export const list = (items, onMouseDown, removeItem) => items.map((item, n) =>
   <ListItem
-    key={item.tooltip}
-    text={item.tooltip}
+    key={n}
+    text={item.name}
     action={item.action}
     iconset={item.iconset}
     icon={item.icon}
+    remove={removeItem.bind(null, item)}
     onMouseDown={onMouseDown.bind(null, item)}
   />)
 
 
 ListComponent.propTypes = {
-  items: prop.array.isRequired,
+  items: prop.oneOf([prop.array, prop.null]).isRequired,
+  onRemoveItem: prop.func.isRequired,
   onMoveItem: prop.func.isRequired,
   onClick: prop.func.isRequired,
 }
