@@ -107,7 +107,7 @@ const ListComponent = ({ items, onMoveItem, onClick, onRemoveItem }) => {
   handleClick = onClick
 
   return <ul
-    className='select-list list-group'>
+    className='select-list list-group padded'>
     {list( items, onDragStart, onRemoveItem )}
   </ul>
 }

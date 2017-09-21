@@ -15,7 +15,7 @@ let subscriptions
 const toolbarDefaultName  = 'undefined' // 'general'
 const createEditView = initializeComponentElement('toolbar-edit-view', EditView)
 const createManageView = initializeComponentElement('toolbar-manage-view', ManageView)
-const createRemoveView = initializeComponentElement('toolbar-remove-view', RemoveView)
+// const createRemoveView = initializeComponentElement('toolbar-remove-view', RemoveView)
 
 
 export function activate () {

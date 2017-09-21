@@ -61,9 +61,9 @@ export default class ManageView extends Component {
           <h3>{this.title}</h3>
           <p>{this.subtitle}</p>
         </header>
-        <div className='panel-body padded '>
+        <div className='panel-body'>
 
-          <section className='instructions text-subtle'>
+          <section className='align-center instructions text-subtle padded'>
             <p>Drag to reorder, click to modify.</p>
           </section>
 

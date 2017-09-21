@@ -23,8 +23,8 @@ toolbar-manage-view {
     flex-flow: column nowrap }
 
   .panel-body {
-    display: flex;
-    flex-flow: row wrap;
+    display:         flex;
+    flex-flow:       row wrap;
     justify-content: space-around;
     padding:   @component-padding @component-padding / 2 }
 
@@ -34,6 +34,10 @@ toolbar-manage-view {
     margin:   0;
     padding:  @component-padding @component-padding / 2;
     overflow: auto }
+
+  .panel-body ul.list-group li.list-item {
+    padding-left: 0 !important;
+    padding-right: 0 !important }
 
   li.list-item {
     justify-content: space-between;
@@ -62,67 +66,12 @@ toolbar-manage-view {
     }
 
   }
+
+  .instructions {
+    padding: 0;
+    flex: 0 0 3em;
+  }
 }
-
-
-// atom-panel[class*='tool-bar-button-'] {
-//   max-width: 35vw;
-//   max-width: 270px;
-//   width:     30rem;
-//   transition: max-width @transition-duration;
-//
-//   [data-reactroot] {
-//     flex:       1 1;
-//     height:     auto;
-//     display:    flex;
-//     flex-flow:  column nowrap;
-//     justify-content: center }
-//
-//   &.tool-bar-button-edit-view [data-reactroot] {
-//     justify-content: flex-start }
-//
-//   .panel-body {
-//
-//     > * {
-//       flex: 1 1;
-//       overflow: auto }}
-//
-//   select,
-//   atom-text-editor,
-//   .btn-toolbar {
-//     display: block;
-//     width: auto }
-//
-//   select {
-//     background: @input-background-color;
-//     color: @text-color;
-//     width: 100%;
-//     box-sizing: border-box }
-//
-//   .instructions {
-//     display: block !important;
-//     transition: @transition-duration * 3 max-height, @transition-duration * 3 opacity;
-//     padding: 0;
-//     margin: @component-padding * 2;
-//     font-style: italic;
-//     width: 100%;
-//     max-width: none;
-//     max-height: 12em;
-//     box-sizing: border-box;
-//     overflow: hidden;
-//     opacity: 1 }
-//
-//   .instructions.hidden {
-//     display: block !important;
-//     max-height: 0;
-//     opacity: 0 }
-//
-//   .hidden {
-//     min-width: 0 !important;
-//     max-width: none }
-//
-//   label {
-//     display: block }}
 
 toolbar-edit-view {
 
@@ -132,6 +81,10 @@ toolbar-edit-view {
 }
 
 toolbar-manage-view {
+  .panel-body {
+    flex-direction: column;
+    flex-grow: 11;
+  }
 
   .list-item {
     transition: background-color @transition-duration, color @transition-duration;
