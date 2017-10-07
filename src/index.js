@@ -79,16 +79,16 @@ function addManagementButtons (managementToolbar, fragment) {
   addBtn.element.classList.add('btn-config', 'edit')
 
   // Remove button
-  let removeBtn = managementToolbar.addButton({
-    priority:   84,
-    icon:       'x',
-    tooltip:    'Remove items from toolbar',
-    callback:   () => atom.workspace.open({
-      item: document.createElement('toolbar-remove-view'),
-      getTitle () { return 'Remove tool-bar items' }
-    })
-  })
-  removeBtn.element.classList.add('btn-config', 'remove')
+  // let removeBtn = managementToolbar.addButton({
+  //   priority:   84,
+  //   icon:       'x',
+  //   tooltip:    'Remove items from toolbar',
+  //   callback:   () => atom.workspace.open({
+  //     item: document.createElement('toolbar-remove-view'),
+  //     getTitle () { return 'Remove tool-bar items' }
+  //   })
+  // })
+  // removeBtn.element.classList.add('btn-config', 'remove')
 
   // Menu button
   let editBtn = managementToolbar.addButton({
