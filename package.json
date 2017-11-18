@@ -4,7 +4,7 @@
   },
   "name": "tool-bar-gui",
   "main": "./src/index",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "keywords": [
     "toolbar",
     "utility",
@@ -52,8 +52,5 @@
   "homepage": "https://github.com/tuomashatakka/tool-bar-gui#readme",
   "readme": "# Tool Bar GUI for Atom.io\n\nA graphic user interface for managing [tool-bar] (http://atom.io/packages/tool-bar) items. \n\nRequires the [tool-bar] (http://atom.io/packages/tool-bar) package. \n\n## Features\n\nCurrently this package provdes panels for\n`adding`items to the tool bar and `removing` items from the tool bar. \n\nFuture updates will introduce tools for editing existing entries and ordering of items.\n",
   "readmeFilename": "README.md",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tuomashatakka/tool-bar-gui.git"
-  }
+  "repository": "https://github.com/tuomashatakka/tool-bar-gui"
 }
