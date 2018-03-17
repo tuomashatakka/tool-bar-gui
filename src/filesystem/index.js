@@ -1,6 +1,6 @@
 'use babel'
 import { Directory } from 'atom'
-import { extname } from 'path'
+import { extname, join } from 'path'
 import { getActionByItem } from '../models/ToolbarItem'
 import { existsSync, unlinkSync } from 'fs'
 
@@ -14,10 +14,26 @@ export default function toolBarButtonOnClickHandler () {
   })(atom)}`
 }
 
+const getScriptsPath = () => {
+  // const [ major, minor, patch ] = atom.getVersion().split('.')
+  if (typeof atom.getConfigDirPath === 'function')
+    return join(
+      atom.getConfigDirPath(),
+      'storage',
+      'custom-toolbar-scripts'
+    )
+
+  else if (typeof atom.getStorageFolder === 'function')
+    return atom
+      .getStorageFolder()
+      .pathForKey('custom-toolbar-scripts')
+
+  else
+    atom.notifications.addError('Could not resolve a path for storage folder. Weird.')
+}
+
 const getDirectory = () =>
-  new Directory(atom
-  .getStorageFolder()
-  .pathForKey('custom-toolbar-scripts'))
+  new Directory(getScriptsPath())
 
 
 export async function getFile (name) {
