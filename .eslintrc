@@ -1,0 +1,6 @@
+{
+  extends: "@tuomashatakka",
+  globals: {
+    atom: true
+  }
+}

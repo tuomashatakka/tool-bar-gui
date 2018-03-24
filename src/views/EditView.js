@@ -1,13 +1,16 @@
 /** @babel */
 
+import self from 'autobind-decorator'
 import React, { Component } from 'react'
 import prop from 'prop-types'
 import List from '../components/List'
-import { serializeFormData } from '../forms'
 import Editor from '../components/TextEditor'
 import { toggleView } from '../util'
 import ToolbarAction from '../models/ToolbarAction'
 import { Emitter } from 'atom'
+
+import { PureComponent } from 'react'
+
 
 const MAX_ENTRIES_VISIBLE = 8
 
@@ -34,8 +37,6 @@ export default class ToolBarEditPanelView extends Component {
 
   constructor (props) {
     super(props)
-    this.emitter  = new Emitter()
-    this.emitter.on('form-error', (error) => this.updateState({ error }))
     let { iconset, icon, command, tooltip } = this.props.action || {}
     this.state = {
       icon,
@@ -45,13 +46,23 @@ export default class ToolBarEditPanelView extends Component {
     }
   }
 
+  componentWillMount () {
+    this.emitter  = new Emitter()
+    this.emitter.on('form-error', (error) => this.updateState({ error }))
+  }
+
+  componentWillUnmount () {
+    this.emitter.dispose()
+  }
+
   submit = (e) => {
-    let data = this.form.data
-    let validation = this.isValid(data)
-    if (validation === true)
+    let data             = this.state
+    let validationResult = this.isValid(data)
+    if (validationResult === true)
       this.dispatch(e, 'submit', data)
+
     else {
-      this.emitter.emit('form-error', validation)
+      this.emitter.emit('form-error', validationResult)
       e.stopImmediatePropagation()
     }
 
@@ -71,18 +82,10 @@ export default class ToolBarEditPanelView extends Component {
     return false
   }
 
-  initializeForm (ref) {
-    if (!ref)
-       return
-    if (!this.form) {
-      this.form = ref
-      Object.defineProperty(this.form, 'data', { get: serializeFormData.bind(ref, true) })
-    }
-  }
-
+  // eslint-disable-next-line class-methods-use-this
   isValid (data) {
     for (let [ key, value ] in data) {
-      if (value.trim().length === 0)
+      if (!value || (value.trim().length === 0))
         return {
           key,
           exception: new Error(`Invalid value for the '${key}' field; value must not be empty.`),
@@ -91,63 +94,42 @@ export default class ToolBarEditPanelView extends Component {
     return true
   }
 
-  get editor () {
-    if (this.__editor)
-      return this.__editor
-
-    let grammar = atom.grammars.getGrammars().find(o => o.scopeName.search('.js') > 0)
-    let editor  = atom.textEditors.build({ grammar })
-    let command = this.props.action.properties.get('command')
-    if (command)
-      editor.setText(command)
-    // editor.element.addEventListener('focus', console.log)
-    editor.element.setAttribute('name', 'command')
-    editor.onDidStopChanging(() => this.updateState({ command: this.__editor.getText() }))
-    return (this.__editor = editor)
-  }
-
   updateState (props={}) {
     this.setState(props)
   }
 
   get items () {
-    let { command } = this.state
-    let text        = command || ''
+    let text        = this.state.command || ''
     let icon        = 'terminal'
-    let action      = ({ text }) => this.editor.setText(text)
+    let action      = ({ text }) => this.setState({ command: text })
 
-    if (!text.match(/\n/g))
+    if (text.match(/\n/g))
+      return []
+
+    try {
       return filterCommands(text)
-      .map(name => ({ icon, name, action, }))
-      .slice(0, MAX_ENTRIES_VISIBLE)
-    return []
+        .map(name => ({ icon, name, action }))
+        .slice(0, MAX_ENTRIES_VISIBLE) }
+
+    catch (e) {
+      if (atom.devMode)
+        // eslint-disable-next-line no-console
+        console.warn("Error in filtering atom commands:", e)
+      return [] }
   }
 
   render () {
 
     let host
-
-    const bindInfo = (target) => {
-      const focus = () => target.classList.remove('hidden')
-      const blur  = () => target.classList.add('hidden')
-      if (!target)
-        return
-      this.editor.element.removeEventListener('focus', focus)
-      this.editor.element.removeEventListener('blur', blur)
-      this.editor.element.addEventListener('focus', focus)
-      this.editor.element.addEventListener('blur', blur)
-    }
-
-    let { items } = this
-    let { error } = this.state
-
-    const showErrors       = (field) => error && error.key === field ? error.exception.message : ''
-    const attachEditor     = (ref) => ref ? ref.appendChild(this.editor.element) : null
+    const showErrors       = (field) =>
+      this.state.error && (this.state.error.key === field)
+      ? this.state.error.exception.message
+      : ''
     const onTooltipChanged = ({ text: tooltip }) => this.setState({ tooltip })
     const onIconsetChanged = ({ value: iconset }) => this.setState({ iconset })
     const onIconChanged    = ({ text: icon }) => this.setState({ icon })
 
-    return <form ref={this.initializeForm.bind(this)} onSubmit={this.submit.bind(this)}>
+    return <form onSubmit={ this.submit } ref={ ref => ref && ( this.form = ref )}>
 
       <header className='panel-heading padded'>
         <h3>{this.title}</h3>
@@ -194,9 +176,18 @@ export default class ToolBarEditPanelView extends Component {
 
       <label className='form-group command-editor'>
         <div className="h5">Callback command/function</div>
-        <article ref={attachEditor} />
+        <article>
+          <CodeEditor
+            value={ this.state.command }
+            onChange={ command => this.updateState({ command }) }
+            grammar={ atom
+              .grammars
+              .getGrammars()
+              .find(o => o.scopeName.search('.js') !== -1) }
+          />
+        </article>
         <article className='commands-list'>
-          {<List items={items} />}
+          <List items={ this.items } />
         </article>
         {showErrors('command')}
       </label>
@@ -205,7 +196,7 @@ export default class ToolBarEditPanelView extends Component {
 
     <footer className='panel-footer padded' ref={ref => ref && (host = ref.parentElement)}>
 
-      <section className='instructions text-subtle hidden' ref={bindInfo}>
+      {/* <section className='instructions text-subtle hidden'>
 
         <p>
           You may choose to write either any javascript function (with window.atom
@@ -218,7 +209,7 @@ export default class ToolBarEditPanelView extends Component {
           <code>git-plus:add-all-and-commit</code>
         </p>
 
-      </section>
+      </section> */}
 
       <section className='btn-toolbar'>
         <div className='btn-group'>
@@ -241,5 +232,55 @@ export default class ToolBarEditPanelView extends Component {
     </footer>
   </form>
 
+  }
+}
+
+
+class CodeEditor extends PureComponent {
+
+  constructor (props) {
+    super(props)
+    console.log(props)
+    this.editor = atom.textEditors.build(props)
+  }
+
+  componentWillUpdate (props) {
+    this.hasChanged = props.value !== this.props.value
+
+    if ('grammar' in props)
+      this.editor.setGrammar(props.grammar)
+    if (this.hasChanged && ('value' in props))
+      this.editor.setText(props.value || '')
+    if ('name' in props)
+      this.editor.element.setAttribute('name', props.name)
+  }
+
+  componentDidUpdate () {
+    // const focused = this.editor.element.hasFocus()
+    // if (this.hasChanged && !focused)
+    //   this.editor.element.focus()
+  }
+
+  componentWillMount () {
+    const callback = () =>
+      this.props.onChange(this.editor.getText())
+    this.subscription = this.editor.onDidStopChanging(callback)
+  }
+
+  componentWillUnmount () {
+    this.subscription.dispose()
+  }
+
+  @self
+  // eslint-disable-next-line class-methods-use-this
+  appendEditor (ref) {
+    if (ref) {
+      ref.insertAdjacentElement('beforeBegin', this.editor.element)
+      ref.remove()
+    }
+  }
+
+  render () {
+    return <article ref={ this.appendEditor } />
   }
 }
